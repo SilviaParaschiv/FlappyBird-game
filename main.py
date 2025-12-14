@@ -26,14 +26,16 @@ def main():
                 if event.key==pygame.K_SPACE:
                     if game.state==START:
                         game.reset()
-                    elif game.state==PLAYING:
+                    elif game.state==PLAYING and not game.show_info:
                         game.bird.jump()
 
                 elif event.key==pygame.K_r and game.state==GAME_OVER:
                     game.reset()
+            elif event.type==pygame.MOUSEBUTTONDOWN and event.button==1:
+                game.handle_click(event.pos)
                 
 
-        if game.state==PLAYING:
+        if game.state==PLAYING and not game.show_info:
             game.update_playing(now_ms)
 
         game.draw(screen, font)

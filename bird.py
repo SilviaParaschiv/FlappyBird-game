@@ -8,8 +8,8 @@ class Bird:
         self.rect = self.image.get_rect(center=(x, y))
 
         self.vel_y = 0.0
-        self.gravity = 0.5
-        self.jump_strength = -8.5
+        self.gravity = 0.75
+        self.jump_strength = -7.0
 
     def jump(self) -> None:
         self.vel_y=self.jump_strength
