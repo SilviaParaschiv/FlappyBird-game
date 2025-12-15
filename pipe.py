@@ -39,11 +39,17 @@ class PipePair:
         else:
             offset = 0
 
-        self.top.y = offset
-        self.top.height = self.top_h
+        if self.moving:
+            offset = int(math.sin(self.phase + now_ms * self.move_speed) * self.move_amp)
+        else:
+             offset = 0
 
-        self.bottom.y = self.top_h + self.gap + offset
+        self.top.y = 0
+        self.top.height = self.top_h + offset
+
+        self.bottom.y = self.top.height + self.gap
         self.bottom.height = self.screen_h - self.bottom.y
+
 
     def draw(self, screen: pygame.Surface) -> None:
         body_color = self.body_color
