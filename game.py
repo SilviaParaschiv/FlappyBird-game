@@ -19,12 +19,15 @@ class Game:
         self.pipe_speed = 4.5
 
         self.state = START
-        self.mode = 1  # 1 = classic, 2 = purple moving pipes
+        self.mode = 1 
         self.score_manager = ScoreManager()
 
-        self.spawn_every_ms = 10500
+        self.spawn_start_ms = 1200
+        self.spawn_min_ms = 500
+        self.spawn_decay= 70
+        self.spawn_every_ms=self.spawn_start_ms
         self.last_spawn_ms = 0
-
+        
         self.show_info = False
         self.buttons = self._build_buttons()
 
@@ -32,9 +35,22 @@ class Game:
         self.bird.reset(100, self.height // 2)
         self.pipes.clear()
         self.score = 0
-        self.pipe_gap = 200
-        self.pipe_speed = 4.5
+        
+        if  self.mode == 2:
+            self.pipe_gap = 210
+            self.pipe_speed = 3.8
+            self.spawn_start_ms = 1200
+            self.spawn_min_ms = 400
+            self.spawn_decay = 80
+        else:
+            self.pipe_gap = 200
+            self.pipe_speed = 4.5
+            self.spawn_start_ms = 1350
+            self.spawn_min_ms = 500
+            self.spawn_decay = 60
+
         self.last_spawn_ms = 0
+        self.spawn_every_ms = self.spawn_start_ms
         self.state = PLAYING
         self.show_info = False
 
@@ -43,8 +59,8 @@ class Game:
             "start": pygame.Rect(16, 16, 110, 44),
             "restart": pygame.Rect(136, 16, 110, 44),
             "info": pygame.Rect(256, 16, 110, 44),
-            "mode1": pygame.Rect(16, 70, 180, 40),
-            "mode2": pygame.Rect(206, 70, 180, 40),
+            "Mod Clasic": pygame.Rect(16, 70, 180, 40),
+            "Mod Avansat": pygame.Rect(206, 70, 180, 40),
         }
 
     def _pipe_config(self) -> dict:
@@ -72,12 +88,12 @@ class Game:
         if self.buttons["info"].collidepoint(pos):
             self.show_info = not self.show_info
             return
-        if self.buttons["mode1"].collidepoint(pos):
+        if self.buttons["Mod Clasic"].collidepoint(pos):
             self.mode = 1
             if self.state in (PLAYING, GAME_OVER):
                 self.reset()
             return
-        if self.buttons["mode2"].collidepoint(pos):
+        if self.buttons["Mod Avansat"].collidepoint(pos):
             self.mode = 2
             if self.state in (PLAYING, GAME_OVER):
                 self.reset()
@@ -89,13 +105,14 @@ class Game:
             self.pipes.append(PipePair(self.width, self.height, self.pipe_gap, self.pipe_width, **cfg))
             self.last_spawn_ms = now_ms
 
-    def update_difificulty(self) -> None:
+    def update_difficulty(self) -> None:
         if self.score > 0 and self.score % 5 == 0:
-            self.pipe_speed = min(self.pipe_speed + 0.02, 8.0)
+            self.pipe_speed = min(self.pipe_speed + 0.03, 8.0)
             self.pipe_gap = max(160, self.pipe_gap - 1)
 
     def update_playing(self, now_ms: int) -> None:
         self.maybe_spawn_pipe(now_ms)
+        self.update_spawn_rate()
         self.bird.update()
 
         for pipe in list(self.pipes):
@@ -109,7 +126,8 @@ class Game:
             if not pipe.passed and pipe.is_passed_by(self.bird.rect):
                 pipe.passed = True
                 self.score += 1
-                self.update_difificulty()
+                self.update_difficulty()
+                self.update_spawn_rate()
 
             if pipe.off_screen():
                 self.pipes.remove(pipe)
@@ -117,6 +135,9 @@ class Game:
         if self.bird.rect.top < 0 or self.bird.rect.bottom > self.height:
             self.state = GAME_OVER
             self.score_manager.try_update_high_score(self.score)
+
+    def update_spawn_rate(self) -> None:
+        self.spawn_every_ms = max(self.spawn_min_ms, self.spawn_start_ms - self.score*self.spawn_decay)
 
     def _draw_background(self, screen: pygame.Surface) -> None:
         if self.mode == 2:
@@ -184,13 +205,13 @@ class Game:
         self._draw_button(screen, self.buttons["start"], "Start", enabled=self.state in (START, GAME_OVER))
         self._draw_button(screen, self.buttons["restart"], "Restart", enabled=self.state == GAME_OVER)
         self._draw_button(screen, self.buttons["info"], "Info")
-        self._draw_button(screen, self.buttons["mode1"], "Mode 1", active=self.mode == 1)
-        self._draw_button(screen, self.buttons["mode2"], "Mode 2", active=self.mode == 2)
+        self._draw_button(screen, self.buttons["Mod Clasic"], "Mod Clasic", active=self.mode == 1)
+        self._draw_button(screen, self.buttons["Mod Avansat"], "Mod Avansat", active=self.mode == 2)
 
         if self.state == START:
             msg1 = font.render("Choose a mode, then Start", True, (10, 40, 40))
-            msg2 = font.render("Mode 1: Classic green", True, (10, 40, 40))
-            msg3 = font.render("Mode 2: Purple moving", True, (10, 40, 40))
+            msg2 = font.render("Mod Clasic: Classic green", True, (10, 40, 40))
+            msg3 = font.render("Mod Avansat: Purple moving", True, (10, 40, 40))
             screen.blit(msg1, (self.width // 2 - msg1.get_width() // 2, self.height // 2 - 50))
             screen.blit(msg2, (self.width // 2 - msg2.get_width() // 2, self.height // 2 - 10))
             screen.blit(msg3, (self.width // 2 - msg3.get_width() // 2, self.height // 2 + 30))
