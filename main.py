@@ -9,14 +9,12 @@ def main():
     pygame.init()
     screen=pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Flappy Bird")
-    clock=pygame.time.Clock()
     font=pygame.font.SysFont(None, 32)
 
     game=Game(WIDTH, HEIGHT)
 
     running=True
     while running:
-        dt=clock.tick(FPS)
         now_ms=pygame.time.get_ticks()
 
         for event in pygame.event.get():
@@ -28,6 +26,9 @@ def main():
                         game.reset()
                     elif game.state==PLAYING and not game.show_info:
                         game.bird.jump()
+                elif event.key==pygame.K_RETURN:
+                    if game.state==PLAYING and not game.show_info:
+                        game.bird.strong_jump()
 
                 elif event.key==pygame.K_r and game.state==GAME_OVER:
                     game.reset()
