@@ -37,11 +37,11 @@ class Game:
         self.score = 0
         
         if  self.mode == 2:
-            self.pipe_gap = 210
-            self.pipe_speed = 3.8
-            self.spawn_start_ms = 1200
-            self.spawn_min_ms = 400
-            self.spawn_decay = 80
+            self.pipe_gap = 220
+            self.pipe_speed = 3.9
+            self.spawn_start_ms = 1800
+            self.spawn_min_ms = 750
+            self.spawn_decay = 100
         else:
             self.pipe_gap = 200
             self.pipe_speed = 4.5
@@ -137,6 +137,7 @@ class Game:
             self.score_manager.try_update_high_score(self.score)
 
     def update_spawn_rate(self) -> None:
+        
         self.spawn_every_ms = max(self.spawn_min_ms, self.spawn_start_ms - self.score*self.spawn_decay)
 
     def _draw_background(self, screen: pygame.Surface) -> None:
